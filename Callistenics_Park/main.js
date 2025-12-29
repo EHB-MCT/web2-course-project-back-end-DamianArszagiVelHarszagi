@@ -1,33 +1,38 @@
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const express = require("express");
-const app = express();
-const { MongoCLient, ServerApiVersion } = require("mongodb");
-require("dotenv").config();
-import cors from "cors";
-import { version } from "react";
+const uri =
+	"mongodb+srv://damian_arszagi:<db_password>@cluster0.zle6rw4.mongodb.net/?appName=Cluster0";
 
-app.use(cors());
-
-const client = new MongoClient("forgot_to_make", {
+const client = new MongoClient(uri, {
 	serverApi: {
 		version: ServerApiVersion.v1,
 		strict: true,
 		deprecationErrors: true,
 	},
 });
-let db;
+const app = express();
+const port = 3000;
 
-async function connectionDB() {
-	if (!db) {
+app.use(express.json()), app.use(express.urlencoded({ extended: true }));
+
+app.get("/", async (req, res) => {
+	let message = "";
+	try {
+		// Connect the client to the server	(optional starting in v4.7)
 		await client.connect();
-		db = client.db(USERNAME);
-		console.log("mongo connected");
+		// Send a ping to confirm a successful connection
+		await client.db("admin").command({ ping: 1 });
+		console.log(
+			"Pinged your deployment. You successfully connected to MongoDB!"
+		);
+		message = "Hello World";
+	} catch (error) {
+		console.error("error", error);
+		res.status(500).send("failed connect");
+	} finally {
+		// Ensures that the client will close when you finish/error
+		await client.close();
+		res.send(message);
 	}
-	return db;
-}
-
-function getDB() {
-	if (!db) throw new Error("mongo not connected");
-	return db;
-}
-
-module.exports = { connectionDB, getDB };
+});
+app.listen(port, () => console.log(`Server: http://localhost:${port}`));
