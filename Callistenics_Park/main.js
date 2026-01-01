@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 require("dotenv").config();
 
@@ -20,6 +20,7 @@ const client = new MongoClient(uri, {
 
 let database = "";
 let parksCollection = "";
+let reviewsCollection = "";
 
 async function start() {
 	try {
@@ -29,12 +30,15 @@ async function start() {
 
 		database = client.db("calisthenics");
 		parksCollection = database.collection("parks");
-
+		reviewsCollection = database.collection("reviews");
+		/*
 		app.get("/", (req, res) => res.send("server ok + DB connected"));
 
 		app.get("/api/test", (req, res) => {
 			res.json({ ok: true });
 		});
+
+		*/
 		app.get("/api/parks", async (req, res) => {
 			try {
 				const parks = await parksCollection.find().toArray(); //later filter maken
@@ -42,6 +46,19 @@ async function start() {
 			} catch (error) {
 				res.status(500).json({ message: "error loading parks" });
 			}
+		});
+		app.get("/api/reviews", async (req, res) => {
+			const parkId = req.query.parkId;
+
+			if (!parkId) return res.status(400).send("park missing");
+			if (!ObjectId.isValid(parkId))
+				return res.status(400).send(`${parkId} form not correct`);
+
+			const reviews = await reviewsCollection
+				.find({ parkId: new ObjectId(parkId) })
+				.toArray();
+
+			res.json(reviews);
 		});
 		app.post("/api/parks", async (req, res) => {
 			try {
@@ -56,6 +73,7 @@ async function start() {
 					name,
 					city,
 					rating: r,
+					createdAt: new Date(),
 				};
 				const result = await parksCollection.insertOne(park);
 
@@ -66,6 +84,34 @@ async function start() {
 				});
 			} catch (error) {
 				res.status(500).json({ message: "error loading parks" });
+			}
+		});
+		app.post("/api/reviews", async (req, res) => {
+			try {
+				const { parkId, rating, comment } = req.body;
+
+				if (!parkId)
+					return res.status(400).json({ message: "parkId is required" });
+				if (!ObjectId.isValid(parkId))
+					return res.status(400).json({ message: "form not correct" });
+
+				let r = Number(rating) || 0;
+
+				const review = {
+					parkId: new ObjectId(parkId),
+					rating: r,
+					comment: comment || "",
+					createdAt: new Date(),
+				};
+				const result = await reviewsCollection.insertOne(review);
+
+				res.status(201).json({
+					message: "Review added",
+					id: result.insertedId,
+					data: review,
+				});
+			} catch (error) {
+				res.status(500).json({ message: "error adding reviews" });
 			}
 		});
 		app.listen(port, () => console.log(`http://localhost:${port}`));
