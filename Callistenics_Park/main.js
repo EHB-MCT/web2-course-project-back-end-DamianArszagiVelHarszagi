@@ -43,6 +43,31 @@ async function start() {
 				res.status(500).json({ message: "error loading parks" });
 			}
 		});
+		app.post("/api/parks", async (req, res) => {
+			try {
+				const { name, city, rating } = req.body;
+
+				if (!name || !city) {
+					return res.status(400).json({ message: "name and city required" });
+				}
+				let r = Number(rating) || 0;
+
+				const park = {
+					name,
+					city,
+					rating: r,
+				};
+				const result = await parksCollection.insertOne(park);
+
+				res.status(201).json({
+					message: "Park added",
+					id: result.insertId,
+					data: park,
+				});
+			} catch (error) {
+				res.status(500).json({ message: "error loading parks" });
+			}
+		});
 		app.listen(port, () => console.log(`http://localhost:${port}`));
 	} catch (error) {
 		console.error("mongodb niet connected", error.message);
