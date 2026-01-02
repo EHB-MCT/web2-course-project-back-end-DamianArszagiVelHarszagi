@@ -62,28 +62,41 @@ async function start() {
 		});
 		app.post("/api/parks", async (req, res) => {
 			try {
-				const { name, city, rating } = req.body;
+				const { name, city, rating, open24_7, equipment } = req.body;
 
 				if (!name || !city) {
 					return res.status(400).json({ message: "name and city required" });
 				}
 				let r = Number(rating) || 0;
 
+				let eq = [];
+				if (Array.isArray(equipment)) {
+					eq = equipment;
+				} else if (typeof equipment === "string") {
+					eq = equipment
+						.split(",")
+						.map((x) => x.trim())
+						.filter((x) => x.length > 0);
+				}
+
 				const park = {
 					name,
 					city,
 					rating: r,
+					open24_7: Boolean(open24_7),
+					equipment: eq,
 					createdAt: new Date(),
 				};
 				const result = await parksCollection.insertOne(park);
 
 				res.status(201).json({
 					message: "Park added",
-					id: result.insertId,
+					id: result.insertedId,
 					data: park,
 				});
 			} catch (error) {
-				res.status(500).json({ message: "error loading parks" });
+				console.error("POST /api/parks ERROR:", error);
+				res.status(500).json({ message: error.message });
 			}
 		});
 		app.post("/api/reviews", async (req, res) => {
