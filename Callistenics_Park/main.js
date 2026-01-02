@@ -85,6 +85,7 @@ async function start() {
 					rating: r,
 					open24_7: Boolean(open24_7),
 					equipment: eq,
+					reviewsCount: 0,
 					createdAt: new Date(),
 				};
 				const result = await parksCollection.insertOne(park);
@@ -109,6 +110,13 @@ async function start() {
 					return res.status(400).json({ message: "form not correct" });
 
 				let r = Number(rating) || 0;
+				if (r < 0) r = 0;
+				if (r > 5) r = 5;
+
+				const parkObjectId = new ObjectId(parkId);
+
+				const park = await parksCollection.findOne({ _id: parkObjectId });
+				if (!park) return res.status(400).json({ message: "park not found" });
 
 				const review = {
 					parkId: new ObjectId(parkId),
@@ -116,13 +124,24 @@ async function start() {
 					comment: comment || "",
 					createdAt: new Date(),
 				};
-				const result = await reviewsCollection.insertOne(review);
+				await reviewsCollection.insertOne(review);
 
-				res.status(201).json({
-					message: "Review added",
-					id: result.insertedId,
-					data: review,
+				//park rating en reviewsCount updaten
+				const oldCount = Number(park.reviewsCount) || 0;
+				const oldRating = Number(park.rating) || 0;
+
+				const newCount = oldCount + 1;
+				const newAvg = (oldRating * oldCount + r) / newCount;
+
+				await parksCollection.updateOne(
+					{ _id: parkObjectId },
+					{ $set: { rating: newAvg, reviewsCount: newCount } }
+				);
+				//updated park terugsturen
+				const updatedPark = await parksCollection.findOne({
+					_id: parkObjectId,
 				});
+				res.status(201).json(updatedPark);
 			} catch (error) {
 				res.status(500).json({ message: "error adding reviews" });
 			}
