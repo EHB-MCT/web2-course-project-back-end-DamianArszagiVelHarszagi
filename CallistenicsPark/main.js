@@ -1,8 +1,7 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
-if (process.env.NODE_ENV !== "production") {
-	require("dotenv").config();
-}
+
+require("dotenv").config();
 
 const cors = require("cors");
 const app = express();
@@ -148,7 +147,16 @@ async function start() {
 				res.status(500).json({ message: "error adding reviews" });
 			}
 		});
-		app.listen(port, () => console.log(`http://localhost:${port}`));
+		app.listen(port, () => {
+			console.log(`Server running on port ${port}`);
+			console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+
+			// NIET je volledige URI loggen (veiligheid). Als je toch wil debuggen:
+			console.log(
+				"MONGO_URI starts with:",
+				(process.env.MONGO_URI || "").slice(0, 12)
+			);
+		});
 	} catch (error) {
 		console.error("mongodb niet connected", error.message);
 	}
