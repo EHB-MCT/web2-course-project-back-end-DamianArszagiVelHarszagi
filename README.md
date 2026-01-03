@@ -11,6 +11,6 @@ This should contain step by step instructions to run your project (delete this s
 Also include login credentials or other vital information if needed.
 
 ## Sources 🗃️
-
-
-Have a look at the example repository: https://github.com/EHB-MCT/example-readme
+- https://chatgpt.com/share/69584e4c-00a0-8000-aca7-befce3ea3567
+  = ik had grote problemen met de hoisting, veel werkte niet en uiteindelijk was het dat ik op mongoDB mijn ip adres voor iedereen moet openlaten
+  
