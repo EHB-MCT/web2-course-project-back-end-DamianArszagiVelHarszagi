@@ -24,18 +24,14 @@ let database = "";
 let parksCollection = "";
 let reviewsCollection = "";
 
-try {
-	await client.connect();
-	await client.db("admin").command({ ping: 1 });
-	console.log("mongoDB connected");
+await client.connect();
+await client.db("admin").command({ ping: 1 });
+console.log("mongoDB connected");
 
-	database = client.db("calisthenics");
-	// nieuwe collections aanmaken
-	parksCollection = database.collection("parks");
-	reviewsCollection = database.collection("reviews");
-} catch (error) {
-	console.error("mongodb niet connected", error.message);
-}
+database = client.db("calisthenics");
+// nieuwe collections aanmaken
+parksCollection = database.collection("parks");
+reviewsCollection = database.collection("reviews");
 
 // ------------------- GET /api/parks -------------------
 
@@ -169,14 +165,7 @@ app.post("/api/reviews", async (req, res) => {
 		res.status(500).json({ message: "error adding reviews" });
 	}
 });
-// start express server pas als database connected is
+
 app.listen(port, () => {
 	console.log(`Server running on port ${port}`);
-	// probleempjes gehad bij hoisting daarom debug
-	console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
-
-	console.log(
-		"MONGO_URI starts with:",
-		(process.env.MONGO_URI || "").slice(0, 12),
-	);
 });
