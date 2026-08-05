@@ -55,21 +55,25 @@ app.get("/api/parks", async (req, res) => {
 // ------------------- GET /api/reviews?parkId=... -------------------
 
 app.get("/api/reviews", async (req, res) => {
-	const parkId = req.query.parkId;
+	try {
+		const parkId = req.query.parkId;
 
-	// park moet degelijk bestaan
-	if (!parkId) return res.status(400).send("park missing");
+		// park moet degelijk bestaan
+		if (!parkId) return res.status(400).json({ message: "park missing" });
 
-	//parkId correcte Mongo ObjectId string
-	if (!ObjectId.isValid(parkId))
-		return res.status(400).send(`${parkId} form not correct`);
+		//parkId correcte Mongo ObjectId string
+		if (!ObjectId.isValid(parkId))
+			return res.status(400).json({ message: `${parkId} form not correct` });
 
-	// reviews die bij park horen
-	const reviews = await reviewsCollection
-		.find({ parkId: new ObjectId(parkId) })
-		.toArray();
+		// reviews die bij park horen
+		const reviews = await reviewsCollection
+			.find({ parkId: new ObjectId(parkId) })
+			.toArray();
 
-	res.json(reviews);
+		res.json(reviews);
+	} catch (error) {
+		res.status(500).json({ message: "error loading reviews" });
+	}
 });
 
 // ------------------- POST /api/parks -------------------
