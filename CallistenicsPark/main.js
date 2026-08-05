@@ -8,9 +8,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 
-//uit env.
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri, {
 	serverApi: {
@@ -81,10 +80,13 @@ app.get("/api/reviews", async (req, res) => {
 app.post("/api/parks", async (req, res) => {
 	try {
 		// front end stuurt dit
-		const { name, city, rating, open24_7, equipment } = req.body;
+		const { name, city, rating, open24_7, equipment, photo } = req.body;
 
 		if (!name || !city) {
 			return res.status(400).json({ message: "name and city required" });
+		}
+		if (photo !== undefined && typeof photo !== "string") {
+			return res.status(400).json({ message: "photo must be a string" });
 		}
 		let r = Number(rating) || 0;
 
@@ -107,6 +109,7 @@ app.post("/api/parks", async (req, res) => {
 			rating: r,
 			open24_7: Boolean(open24_7),
 			equipment: eq,
+			photo: photo || "",
 			reviewsCount: 0,
 			createdAt: new Date(),
 		};
