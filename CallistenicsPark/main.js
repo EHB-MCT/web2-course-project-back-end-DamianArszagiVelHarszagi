@@ -24,14 +24,22 @@ let database = "";
 let parksCollection = "";
 let reviewsCollection = "";
 
-await client.connect();
-await client.db("admin").command({ ping: 1 });
-console.log("mongoDB connected");
+async function connectDB() {
+	try {
+		await client.connect();
+		await client.db("admin").command({ ping: 1 });
+		console.log("mongoDB connected");
 
-database = client.db("calisthenics");
-// nieuwe collections aanmaken
-parksCollection = database.collection("parks");
-reviewsCollection = database.collection("reviews");
+		database = client.db("calisthenics");
+		// nieuwe collections aanmaken
+		parksCollection = database.collection("parks");
+		reviewsCollection = database.collection("reviews");
+	} catch (error) {
+		console.error("mongodb niet connected", error.message);
+	}
+}
+
+connectDB();
 
 // ------------------- GET /api/parks -------------------
 
