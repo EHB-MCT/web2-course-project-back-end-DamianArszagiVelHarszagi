@@ -23,6 +23,27 @@ let database = "";
 let parksCollection = "";
 let reviewsCollection = "";
 
+const allowedCities = [
+	"Anderlecht",
+	"Brussels",
+	"Ixelles",
+	"Evere",
+	"Ganshoren",
+	"Jette",
+	"Koekelberg",
+	"Auderghem",
+	"Schaerbeek",
+	"Berchem-Saint-Agathe",
+	"Saint-Gilles",
+	"Molenbeek-Saint-Jean",
+	"Saint-Josse-Ten-Noode",
+	"Woluwe-Saint-Lambert",
+	"Sint-Pieters-Woluwe",
+	"Uccle",
+	"Forest",
+	"Watermael-Boitsfort",
+];
+
 async function connectDB() {
 	try {
 		await client.connect();
@@ -85,28 +106,31 @@ app.post("/api/parks", async (req, res) => {
 		if (!name || !city) {
 			return res.status(400).json({ message: "name and city required" });
 		}
+
+		const parkName = String(name).trim();
+		const parkCity = String(city);
+
+		if (!parkName || !parkCity) {
+			return res.status(400).json({ message: "name and city required" });
+		}
+		if (!allowedCities.includes(parkCity)) {
+			return res.status(400).json({ message: "city not allowed" });
+		}
 		if (photo !== undefined && typeof photo !== "string") {
 			return res.status(400).json({ message: "photo must be a string" });
 		}
-		let r = Number(rating) || 0;
+		const parkRating = Number(rating) || 0;
 
-		// als het al een array is dan ok
-		// als het een string is dan splits op comma en trim
 		let eq = [];
 		if (Array.isArray(equipment)) {
 			eq = equipment;
-		} else if (typeof equipment === "string") {
-			eq = equipment
-				.split(",")
-				.map((x) => x.trim())
-				.filter((x) => x.length > 0);
 		}
 
 		// park object dat in Mongo komt
 		const park = {
-			name,
-			city,
-			rating: r,
+			name: parkName,
+			city: parkCity,
+			rating: parkRating,
 			open24_7: Boolean(open24_7),
 			equipment: eq,
 			photo: photo || "",
@@ -150,7 +174,7 @@ app.post("/api/reviews", async (req, res) => {
 
 		// review object
 		const review = {
-			parkId: new ObjectId(parkId),
+			parkId: parkObjectId,
 			rating: r,
 			comment: comment || "",
 			createdAt: new Date(),
