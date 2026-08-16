@@ -1,0 +1,15 @@
+[
+  {
+    "_id": {
+      "$oid": "6a81bfdc84f9453eed46c2df"
+    },
+    "parkId": {
+      "$oid": "6a81bfca84f9453eed46c2de"
+    },
+    "rating": 3,
+    "comment": "yes",
+    "createdAt": {
+      "$date": "2026-08-16T13:49:16.709Z"
+    }
+  }
+]
