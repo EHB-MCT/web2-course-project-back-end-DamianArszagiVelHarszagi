@@ -152,6 +152,31 @@ app.post("/api/parks", async (req, res) => {
 	}
 });
 
+// ------------------- DELETE /api/parks/:id -------------------
+
+app.delete("/api/parks/:id", async (req, res) => {
+	try {
+		const parkId = req.params.id;
+
+		if (!ObjectId.isValid(parkId)) {
+			return res.status(400).json({ message: "form not correct" });
+		}
+
+		const parkObjectId = new ObjectId(parkId);
+		const result = await parksCollection.deleteOne({ _id: parkObjectId });
+
+		if (result.deletedCount === 0) {
+			return res.status(404).json({ message: "park not found" });
+		}
+
+		await reviewsCollection.deleteMany({ parkId: parkObjectId });
+
+		res.json({ message: "Park deleted" });
+	} catch (error) {
+		res.status(500).json({ message: "error deleting park" });
+	}
+});
+
 // ------------------- POST /api/reviews -------------------
 
 app.post("/api/reviews", async (req, res) => {
